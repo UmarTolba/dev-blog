@@ -8,7 +8,7 @@ import html from "remark-html"
 
 import type { ArticleData, ArticleItem } from "@/types"
 
-const getSortedArticles = (): ArticleItem[] => {
+export const getSortedArticles = (): ArticleItem[] => {
   const allArticlesData = getArticlePaths().map((articlePath) => {
     const id = path.basename(articlePath, ".md")
     const fullPath = path.join(process.cwd(), articlePath)

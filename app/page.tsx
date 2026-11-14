@@ -1,62 +1,61 @@
 import Link from "next/link"
-import ArticleItemList from "@/components/ArticleListItem"
-import { getCategorisedArticles } from "@/lib/articles"
+import { getSortedArticles } from "@/lib/articles"
+import { formatArticleDate } from "@/lib/formatDate"
 
 export const dynamic = "force-dynamic"
 
 const HomePage = () => {
-  const articles = getCategorisedArticles()
-  const categories = Object.keys(articles)
-  const total = categories.reduce((sum, key) => sum + articles[key].length, 0)
+  const latest = getSortedArticles().slice(-3).reverse()
 
   return (
     <div className="mx-auto max-w-shell px-6 md:px-10">
-      <header className="grid gap-8 border-b border-ink pb-7 pt-16 md:grid-cols-[minmax(0,7fr)_minmax(0,4fr)] md:items-end md:pt-28">
-        <div>
-          <p className="label">
-            Index — {total} {total === 1 ? "entry" : "entries"}
-          </p>
-          <h1 className="mt-5 font-display text-display-xl tracking-display-tight">
-            minimal <span className="italic text-accent">blog</span>
-          </h1>
-        </div>
-
-        <div className="md:border-l md:border-rule md:pb-3 md:pl-8">
-          <p className="max-w-[34ch] text-meta text-muted">
-            Notes on code, books, and the business of building things. Written
-            long, published rarely.
-          </p>
-          <Link href="/upload-blog" className="link mt-5 inline-block text-meta">
-            Upload an entry
-          </Link>
-        </div>
+      <header className="flex items-baseline justify-between border-b border-ink py-6">
+        <p className="label">Minimal Blog</p>
+        <nav className="flex gap-6 text-meta">
+          <Link href="/articles" className="link">Articles</Link>
+          <Link href="/about" className="link">About</Link>
+          <Link href="/contact" className="link">Contact</Link>
+        </nav>
       </header>
 
-      <main>
-        {categories.length === 0 ? (
-          <p className="py-20 font-display text-display-sm tracking-display text-muted">
-            Nothing published yet.{" "}
-            <Link href="/upload-blog" className="text-accent underline underline-offset-4">
-              Add the first entry
-            </Link>
-            .
-          </p>
-        ) : (
-          categories.map((category, index) => (
-            <ArticleItemList
-              category={category}
-              articles={articles[category]}
-              index={index}
-              key={category}
-            />
-          ))
-        )}
-      </main>
+      <section className="border-b border-ink py-20 md:py-32">
+        <h1 className="font-display text-display-xl tracking-display-tight">
+          minimal <span className="italic text-accent">blog</span>
+        </h1>
+        <p className="mt-8 max-w-[40ch] text-body text-muted">
+          Notes on code, books, and the business of building things. Written
+          long, published rarely.
+        </p>
+        <Link
+          href="/articles"
+          className="label mt-10 inline-block border border-ink bg-ink px-6 py-3 text-surface transition-colors hover:border-accent hover:bg-accent"
+        >
+          Read the articles
+        </Link>
+      </section>
 
-      <footer className="flex flex-wrap items-baseline justify-between gap-4 border-t border-ink py-8">
-        <p className="label">Minimal Blog</p>
-        <p className="label">Set in Instrument Serif &amp; IBM Plex Mono</p>
-      </footer>
+      <main className="py-12 md:py-16">
+        <h2 className="label">
+          <span className="mr-2 text-accent">01</span> Latest
+        </h2>
+        <ul className="mt-6 border-t border-rule">
+          {latest.map((a) => (
+            <li key={a.id} className="border-b border-rule">
+              <Link
+                href={`/${a.id}`}
+                className="group flex flex-wrap items-baseline justify-between gap-x-8 gap-y-1 py-4"
+              >
+                <span className="font-display text-display-sm tracking-display transition-colors group-hover:text-accent">
+                  {a.title}
+                </span>
+                <span className="text-meta tabular-nums text-muted">
+                  {formatArticleDate(a.date)}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </main>
     </div>
   )
 }
