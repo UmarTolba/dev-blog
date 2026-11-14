@@ -1,24 +1,54 @@
 import Link from "next/link"
-import { ArrowLeftIcon } from "@heroicons/react/24/solid"
+import type { Metadata } from "next"
 import { getArticleData } from "@/lib/articles"
+import { formatArticleDate } from "@/lib/formatDate"
+
+export const generateMetadata = async ({
+  params,
+}: {
+  params: { slug: string }
+}): Promise<Metadata> => {
+  const article = await getArticleData(params.slug)
+  return { title: article.title }
+}
 
 const Article = async ({ params }: { params: { slug: string } }) => {
   const articleData = await getArticleData(params.slug)
 
   return (
-    <section className="mx-auto w-10/12 md:w-1/2 mt-20 flex flex-col gap-5">
-      <div className="flex justify-between font-poppins">
-        <Link href={"/"} className="flex flex-row gap-1 place-items-center">
-          <ArrowLeftIcon width={20} />
-          <p>back to home</p>
+    <div className="mx-auto max-w-shell px-6 md:px-10">
+      <div className="grid gap-8 border-b border-ink pb-7 pt-10 md:grid-cols-[minmax(0,11rem)_minmax(0,1fr)] md:gap-10 md:pt-14">
+        <Link href="/" className="link w-fit text-meta">
+          ← Index
         </Link>
-        <p>{articleData.date.toString()}</p>
+        <dl className="flex flex-wrap items-baseline gap-x-10 gap-y-2">
+          <div>
+            <dt className="label">Filed under</dt>
+            <dd className="mt-1 text-meta">{articleData.category}</dd>
+          </div>
+          <div>
+            <dt className="label">Published</dt>
+            <dd className="mt-1 text-meta tabular-nums">
+              {formatArticleDate(articleData.date)}
+            </dd>
+          </div>
+        </dl>
       </div>
-      <article
-        className="article"
-        dangerouslySetInnerHTML={{ __html: articleData.contentHtml }}
-      />
-    </section>
+
+      <div className="grid gap-8 md:grid-cols-[minmax(0,11rem)_minmax(0,1fr)] md:gap-10">
+        <div aria-hidden="true" />
+        <article
+          className="article max-w-measure py-12 md:py-16"
+          dangerouslySetInnerHTML={{ __html: articleData.contentHtml }}
+        />
+      </div>
+
+      <footer className="border-t border-ink py-8">
+        <Link href="/" className="link text-meta">
+          ← Back to the index
+        </Link>
+      </footer>
+    </div>
   )
 }
 

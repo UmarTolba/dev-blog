@@ -2,34 +2,184 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --bg: #f2efe7;
+    --surface: #fbfaf6;
+    --text-primary: #171610;
+    --text-muted: #6d6857;
+    --accent: #b3381d;
+    --accent-ink: #8c2b15;
+    --border: #d7d0bf;
+    --border-strong: #b4ab95;
+
+    --step-label: clamp(0.66rem, 0.64rem + 0.1vw, 0.72rem);
+    --step-meta: clamp(0.74rem, 0.72rem + 0.12vw, 0.82rem);
+    --step-body: clamp(0.88rem, 0.85rem + 0.16vw, 1rem);
+    --step-display-sm: clamp(1.6rem, 1.35rem + 1.1vw, 2.25rem);
+    --step-display: clamp(2.1rem, 1.6rem + 2.6vw, 3.5rem);
+    --step-display-xl: clamp(2.9rem, 1.7rem + 6.2vw, 6.75rem);
+  }
+
+  html {
+    overflow-x: clip;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    overflow-x: clip;
+    background-color: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-plex-mono), ui-monospace, monospace;
+    font-size: var(--step-body);
+    line-height: 1.75;
+    font-feature-settings: "ss02";
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--surface);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+}
+
+@layer components {
+  .label {
+    font-size: var(--step-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .link {
+    color: var(--text-muted);
+    text-decoration: underline;
+    text-decoration-color: var(--border-strong);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    transition: color 120ms linear, text-decoration-color 120ms linear;
+
+    &:hover {
+      color: var(--accent);
+      text-decoration-color: var(--accent);
+    }
+  }
+}
+
 .article {
-  @apply flex flex-col gap-3 font-poppins text-lg tracking-wide mb-20;
-}
+  font-size: var(--step-body);
+  line-height: 1.8;
 
-.article > h1 {
-  @apply font-cormorantGaramond text-4xl text-center tracking-tight;
-}
+  & > * + * {
+    margin-top: 1.4em;
+  }
 
-.article > h2 {
-  @apply font-cormorantGaramond text-3xl tracking-tight;
-}
+  & > h1 {
+    font-family: var(--font-instrument-serif), Georgia, serif;
+    font-size: var(--step-display);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-top: 0;
+  }
 
-.article > ol {
-  @apply list-decimal flex flex-col mx-10 gap-2;
-}
+  & > h2,
+  & > h3 {
+    font-family: var(--font-instrument-serif), Georgia, serif;
+    font-size: var(--step-display-sm);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-top: 2.4em;
+  }
 
-.article > ul {
-  @apply list-disc flex flex-col mx-10 gap-2;
-}
+  & > h3 {
+    font-size: calc(var(--step-display-sm) * 0.72);
+  }
 
-.article > pre {
-  @apply bg-neutral-950 text-neutral-50 p-5 overflow-scroll;
-}
+  & > p {
+    color: var(--text-primary);
+  }
 
-.article > blockquote {
-  @apply pl-5 italic border-l-2 border-neutral-600 border-opacity-40;
-}
+  & > ol,
+  & > ul {
+    padding-left: 1.6em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+  }
 
-.article > p > img {
-  @apply w-1/2 mx-auto;
+  & > ol {
+    list-style: decimal;
+  }
+
+  & > ul {
+    list-style: square;
+  }
+
+  & > ol::marker,
+  & > ul::marker {
+    color: var(--accent);
+  }
+
+  & > blockquote {
+    border-left: 2px solid var(--accent);
+    padding-left: 1.25em;
+    font-family: var(--font-instrument-serif), Georgia, serif;
+    font-size: calc(var(--step-body) * 1.5);
+    font-style: italic;
+    line-height: 1.4;
+    color: var(--text-primary);
+  }
+
+  & > pre {
+    background-color: var(--text-primary);
+    color: var(--surface);
+    padding: 1.25rem 1.5rem;
+    overflow-x: auto;
+    font-size: calc(var(--step-body) * 0.9);
+    line-height: 1.6;
+  }
+
+  & > p > code,
+  & > li > code {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.1em 0.35em;
+    font-size: 0.92em;
+  }
+
+  & > hr {
+    border: 0;
+    border-top: 1px solid var(--border);
+    margin-block: 3em;
+  }
+
+  & > p > img {
+    display: block;
+    width: 100%;
+    max-width: 32rem;
+    height: auto;
+    border: 1px solid var(--border);
+  }
+
+  & a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+
+    &:hover {
+      color: var(--accent-ink);
+    }
+  }
 }
