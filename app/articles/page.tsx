@@ -26,12 +26,6 @@ const ArticlesPage = () => {
             Notes on code, books, and the business of building things. Written
             long, published rarely.
           </p>
-          <nav className="mt-5 flex gap-6 text-meta">
-            <Link href="/" className="link">Home</Link>
-            <Link href="/about" className="link">About</Link>
-            <Link href="/contact" className="link">Contact</Link>
-            <Link href="/upload-blog" className="link">Upload an entry</Link>
-          </nav>
         </div>
       </header>
 
@@ -39,10 +33,9 @@ const ArticlesPage = () => {
         {categories.length === 0 ? (
           <p className="py-20 font-display text-display-sm tracking-display text-muted">
             Nothing published yet.{" "}
-            <Link href="/upload-blog" className="text-accent underline underline-offset-4">
-              Add the first entry
-            </Link>
-            .
+            <Link href="/add-article" className="link">Write the first article</Link>
+            {" "}or{" "}
+            <Link href="/upload-blog" className="link">upload a Markdown file</Link>.
           </p>
         ) : (
           categories.map((category, index) => (

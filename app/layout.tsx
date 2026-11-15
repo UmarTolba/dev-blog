@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { IBM_Plex_Mono, Instrument_Serif } from "next/font/google"
+import SiteHeader from "@/components/SiteHeader"
 import "./globals.css"
 
 const instrumentSerif = Instrument_Serif({
@@ -33,7 +34,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${instrumentSerif.variable} ${plexMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        <SiteHeader />
+        {children}
+      </body>
     </html>
   )
 }

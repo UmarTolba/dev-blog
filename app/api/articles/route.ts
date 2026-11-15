@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import fs from "node:fs/promises"
 import path from "node:path"
 import matter from "gray-matter"
+import { getUserFromToken, sessionCookie } from "@/lib/auth"
 import { addArticlePath, removeArticlePath } from "@/lib/articlePaths"
 
 export const runtime = "nodejs"
@@ -14,7 +15,12 @@ type PendingArticle = {
   contents: string
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const user = getUserFromToken(request.cookies.get(sessionCookie)?.value)
+  if (!user) {
+    return NextResponse.json({ message: "Sign in to upload articles." }, { status: 401 })
+  }
+
   const formData = await request.formData()
   const uploads = formData.getAll("files")
 
@@ -94,7 +100,7 @@ export async function POST(request: Request) {
     try {
       await fs.writeFile(article.filePath, article.contents, { flag: "wx" })
       createdPaths.push(article.filePath)
-      addArticlePath(article.filePath)
+      addArticlePath(article.filePath, user.id)
     } catch (error) {
       await Promise.all(
         createdPaths.map(async (filePath) => {

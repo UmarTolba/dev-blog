@@ -7,4 +7,7 @@ export type ArticleItem = {
 
 export type ArticleData = ArticleItem & {
   contentHtml: string
+  contentMarkdown: string
+  userId: number | null
+  authorName: string | null
 }

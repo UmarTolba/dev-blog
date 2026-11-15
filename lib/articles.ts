@@ -2,27 +2,59 @@ import fs from "fs"
 import matter from "gray-matter"
 import path from "path"
 import moment from "moment"
-import { getArticlePaths } from "@/lib/articlePaths"
+import { getArticlePath, getArticlePaths, removeArticlePath } from "@/lib/articlePaths"
+import { database } from "@/lib/database"
 import { remark } from "remark"
 import html from "remark-html"
 
 import type { ArticleData, ArticleItem } from "@/types"
 
+const getYoutubeId = (value: string): string | null => {
+  try {
+    const url = new URL(value)
+    const id =
+      url.hostname === "youtu.be"
+        ? url.pathname.slice(1)
+        : url.hostname.endsWith("youtube.com")
+          ? url.searchParams.get("v") ??
+            url.pathname.match(/^\/(?:embed|shorts)\/([^/]+)/)?.[1]
+          : null
+
+    return id && /^[\w-]{11}$/.test(id) ? id : null
+  } catch {
+    return null
+  }
+}
+
 export const getSortedArticles = (): ArticleItem[] => {
-  const allArticlesData = getArticlePaths().map((articlePath) => {
-    const id = path.basename(articlePath, ".md")
+  const allArticlesData: ArticleItem[] = []
+
+  for (const articlePath of getArticlePaths()) {
     const fullPath = path.join(process.cwd(), articlePath)
-    const fileContents = fs.readFileSync(fullPath, "utf-8")
-
-    const matterResult = matter(fileContents)
-
-    return {
-      id,
-      title: matterResult.data.title,
-      date: matterResult.data.date,
-      category: matterResult.data.category,
+    let fileContents: string
+    try {
+      fileContents = fs.readFileSync(fullPath, "utf-8")
+    } catch (error) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === "ENOENT"
+      ) {
+        removeArticlePath(fullPath)
+        continue
+      }
+      throw error
     }
-  })
+
+    const { data } = matter(fileContents)
+    allArticlesData.push({
+      id: path.basename(articlePath, ".md"),
+      title: data.title,
+      date: data.date,
+      category: data.category,
+    })
+  }
 
   return allArticlesData.sort((a, b) => {
     const format = "DD-MM-YYYY"
@@ -44,25 +76,68 @@ export const getCategorisedArticles = (): Record<string, ArticleItem[]> =>
     return categories
   }, {})
 
-export const getArticleData = async (slug: string): Promise<ArticleData> => {
-  const articlePath = getArticlePaths().find(
-    (storedPath) => path.basename(storedPath, ".md") === slug,
-  )
-  if (!articlePath) {
-    throw new Error(`Article not found: ${slug}`)
+export const getArticleData = async (
+  slug: string,
+): Promise<ArticleData | null> => {
+  const articlePath = getArticlePath(slug)
+  if (!articlePath) return null
+
+  const fullPath = path.join(process.cwd(), articlePath.path)
+  let fileContents: string
+  try {
+    fileContents = fs.readFileSync(fullPath, "utf-8")
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "ENOENT"
+    ) {
+      removeArticlePath(fullPath)
+      return null
+    }
+    throw error
   }
-  const fullPath = path.join(process.cwd(), articlePath)
-  const fileContents = fs.readFileSync(fullPath, "utf-8")
+
   const matterResult = matter(fileContents)
+  const videos: string[] = []
+  const content = matterResult.content.replace(
+    /\[\[(https?:\/\/[^\]\s]+)\]\]/g,
+    (match, url: string) => {
+      const videoId = getYoutubeId(url)
+      if (!videoId) return match
+
+      const placeholder = `YOUTUBE_VIDEO_${videos.length}_PLACEHOLDER`
+      videos.push(
+        `<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${videoId}" title="YouTube video" loading="lazy" allowfullscreen></iframe></div>`,
+      )
+      return placeholder
+    },
+  )
   const processedContent = await remark()
     .use(html)
-    .process(matterResult.content)
+    .process(content)
+  let contentHtml = processedContent.toString()
+  videos.forEach((video, index) => {
+    contentHtml = contentHtml.replace(
+      `<p>YOUTUBE_VIDEO_${index}_PLACEHOLDER</p>`,
+      video,
+    )
+  })
+  const author = articlePath.userId
+    ? (database
+        .prepare("SELECT name FROM users WHERE id = ?")
+        .get(articlePath.userId) as { name: string } | undefined)
+    : undefined
 
   return {
     id: slug,
     title: matterResult.data.title,
     date: matterResult.data.date,
     category: matterResult.data.category,
-    contentHtml: processedContent.toString(),
+    contentHtml,
+    contentMarkdown: matterResult.content,
+    userId: articlePath.userId,
+    authorName: author?.name ?? null,
   }
 }
